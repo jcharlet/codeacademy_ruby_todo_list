@@ -21,13 +21,16 @@
 
 module Menu
   def menu
-    puts "Welcome!
-      press a number to perform one of the following actions:
-      1) Add'
-      2) Show
-      Q) Quit the program"
+    puts 'Welcome!
+      enter the letter to perform one of the following actions:
+      a) Add
+      u) Update
+      s) Show
 
+      i) import from text file
+      e) export to text file
 
+      Q) Quit the program'
   end
 
   def show
@@ -56,6 +59,11 @@ class List
     @all_tasks << task
   end
 
+  def update(task_number, task)
+    @all_tasks.drop(task_number)
+    @all_tasks[task_number]=task
+  end
+
   def show
     i=0
     for task in @all_tasks
@@ -71,35 +79,64 @@ class Task
   def initialize(name)
     @name = name
   end
-
 end
-# Task Class
-# Create a task item
 
+module FileManagement
+  # @param [List] list
+  def exportToFile(list, file_name="list.txt")
+    todoFile = File.open(file_name, "w")
+    for task in list.all_tasks
+      todoFile.puts "#{task.name}"
+    end
+    todoFile.close
+  end
+
+  def importFromFile(file_name="list.txt")
+    todoFile = File.open(file_name, "r")
+    list = List.new
+    for line in todoFile.readlines
+      puts "adding task #{line}"
+      list.add(Task.new(line))
+    end
+    list
+  end
+end
 
 #ACTIONS
 
 if __FILE__ == $PROGRAM_NAME
   include Menu
   include Promptable
+  include FileManagement
   my_list = List.new
   show
-
-  user_input=
-  until (user_input=prompt().upcase) == 'Q'
+  until (user_input=prompt.downcase) == 'q'
     case user_input
-      when '1'
+      when 'a'
         task_name = prompt(message='what is the task you would like to achieve?')
         my_list.add(Task.new(task_name))
-      when '2'
+      when 'u'
+        task_number = prompt(message='which task number would you like to update?')
+        task_name = prompt(message='what is the task you would like to achieve?')
+        my_list.update((task_number.to_i-1), Task.new(task_name))
+      when 's'
         puts 'Show the tasks'
         my_list.show
+      when 'e'
+        file_name = prompt(message='what is the name of the file to export to?')
+        exportToFile(my_list,file_name)
+      when 'i'
+        file_name = prompt(message='what is the name of the file to import from?')
+        my_list=importFromFile(file_name)
       else
         puts 'didn\'t understand'
         show
     end
   end
 
+
+  # my_list=importFromFile
+  # my_list.show
   puts 'Thanks for using my super software'
 
 end
