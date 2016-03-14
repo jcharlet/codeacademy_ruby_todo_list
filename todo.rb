@@ -25,6 +25,8 @@ module Menu
       enter the letter to perform one of the following actions:
       a) Add
       u) Update
+      d) delete a task
+      c) clear the tasks list
       s) Show
 
       i) import from text file
@@ -32,7 +34,7 @@ module Menu
 
       Q) Quit the program'
   end
-
+task_number
   def show
     menu
   end
@@ -62,6 +64,14 @@ class List
   def update(task_number, task)
     @all_tasks.drop(task_number)
     @all_tasks[task_number]=task
+  end
+
+  def delete(task_number)
+    @all_tasks.delete_at(task_number)
+  end
+
+  def clear()
+    @all_tasks.clear
   end
 
   def show
@@ -119,6 +129,11 @@ if __FILE__ == $PROGRAM_NAME
         task_number = prompt(message='which task number would you like to update?')
         task_name = prompt(message='what is the task you would like to achieve?')
         my_list.update((task_number.to_i-1), Task.new(task_name))
+      when 'd'
+        task_number = prompt(message='which task number would you like to delete?')
+        my_list.delete((task_number.to_i-1))
+      when 'c'
+        my_list.clear
       when 's'
         puts 'Show the tasks'
         my_list.show
