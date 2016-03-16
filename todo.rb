@@ -25,6 +25,7 @@ module Menu
       enter the letter to perform one of the following actions:
       a) Add
       u) Update
+      us) Update status
       d) delete a task
       c) clear the tasks list
       s) Show
@@ -34,7 +35,7 @@ module Menu
 
       Q) Quit the program'
   end
-task_number
+
   def show
     menu
   end
@@ -66,6 +67,11 @@ class List
     @all_tasks[task_number]=task
   end
 
+  def updateStatus(task_number, is_done)
+    # puts "update #{task_number} #{is_done}"
+    @all_tasks[task_number].is_done=is_done
+  end
+
   def delete(task_number)
     @all_tasks.delete_at(task_number)
   end
@@ -78,17 +84,25 @@ class List
     i=0
     for task in @all_tasks
       i+=1;
-      puts "task #{i}: #{task.name}"
+      if task.is_done
+        puts "[X] task #{i}: #{task.name}"
+      else
+        puts "[ ] task #{i}: #{task.name}"
+      end
     end
   end
 end
 
 class Task
   attr_reader :name
+  attr_reader :is_done
+  attr_writer :is_done
 
-  def initialize(name)
+  def initialize(name,is_done=false)
     @name = name
+    @is_done = is_done
   end
+
 end
 
 module FileManagement
@@ -96,7 +110,7 @@ module FileManagement
   def exportToFile(list, file_name="list.txt")
     todoFile = File.open(file_name, "w")
     for task in list.all_tasks
-      todoFile.puts "#{task.name}"
+      todoFile.puts "#{task.name};"
     end
     todoFile.close
   end
@@ -112,14 +126,7 @@ module FileManagement
   end
 end
 
-#ACTIONS
-
-if __FILE__ == $PROGRAM_NAME
-  include Menu
-  include Promptable
-  include FileManagement
-  my_list = List.new
-  show
+def run_menu(my_list)
   until (user_input=prompt.downcase) == 'q'
     case user_input
       when 'a'
@@ -129,6 +136,13 @@ if __FILE__ == $PROGRAM_NAME
         task_number = prompt(message='which task number would you like to update?')
         task_name = prompt(message='what is the task you would like to achieve?')
         my_list.update((task_number.to_i-1), Task.new(task_name))
+      when 'us'
+        task_number = prompt(message='for which task number would you like to update the status?')
+        is_done=""
+        until is_done == "yes" || is_done == "no"
+          is_done = prompt(message='is task done? yes/no').downcase
+        end
+        my_list.updateStatus((task_number.to_i-1),is_done=="yes"?true:false)
       when 'd'
         task_number = prompt(message='which task number would you like to delete?')
         my_list.delete((task_number.to_i-1))
@@ -139,7 +153,7 @@ if __FILE__ == $PROGRAM_NAME
         my_list.show
       when 'e'
         file_name = prompt(message='what is the name of the file to export to?')
-        exportToFile(my_list,file_name)
+        exportToFile(my_list, file_name)
       when 'i'
         file_name = prompt(message='what is the name of the file to import from?')
         my_list=importFromFile(file_name)
@@ -148,10 +162,26 @@ if __FILE__ == $PROGRAM_NAME
         show
     end
   end
+end
+
+#ACTIONS
+
+if __FILE__ == $PROGRAM_NAME
+  include Menu
+  include Promptable
+  include FileManagement
+
+  my_list = List.new
+  my_list=importFromFile
+  show
+
+  run_menu(my_list)
 
 
-  # my_list=importFromFile
-  # my_list.show
+  my_list=importFromFile
+  my_list.show
+  my_list.updateStatus(0,true)
+  my_list.show
   puts 'Thanks for using my super software'
 
 end
